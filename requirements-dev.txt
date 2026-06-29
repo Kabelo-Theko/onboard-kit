@@ -1,0 +1,3 @@
+# Runtime needs only the Python standard library.
+# These are for running the tests.
+pytest>=7.0

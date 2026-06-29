@@ -1,0 +1,4 @@
+# The engine and CLI need only the standard library.
+# These are for the optional web server (web/server.py).
+fastapi>=0.110
+uvicorn[standard]>=0.29
