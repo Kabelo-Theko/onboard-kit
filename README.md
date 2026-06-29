@@ -1,5 +1,7 @@
 # onboard-kit
 
+**Live demo: https://onboard-kit-eta.vercel.app/**
+
 Turn a new starter's details into a complete IT onboarding pack.
 
 Give it a name, department, role and start date. It produces three things every
