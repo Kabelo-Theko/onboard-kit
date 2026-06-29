@@ -195,15 +195,18 @@ function buildPlan(s){ // s:{name,department,role,start(Date),manager,domain}
   return {starter:s,username,email,m365:p.m365,hardware:p.hardware,matched,tasks:t};
 }
 function welcomeEmail(p){const s=p.starter,first=(s.name.trim().split(/\s+/)[0]||"there");
-  return `Subject: Welcome to the team, ${first} — your first day\n\nHi ${first},\n\nWe are looking forward to having you join as ${s.role} on ${fmt(s.start)}.\n\nYour accounts will be ready before you arrive. On your first morning, IT will walk you through logging in, Wi-Fi, your email and the systems you will use day to day.\n\nWhat to bring on day one:\n  - A photo ID for your access setup.\n  - Any device details if you are bringing your own peripherals.\n\nYour sign-in name will be ${p.email}. You will set your password and MFA with IT when you arrive.\n\nIf anything comes up before your start date, just reply to this email.\n\nSee you soon,\n${s.manager||"The team"}`;}
-function dayGuide(p){return [
+  const ai=p.aiWelcome?p.aiWelcome.trim()+"\n\n":"";
+  return `Subject: Welcome to the team, ${first}\n\nHi ${first},\n\n${ai}We are looking forward to having you join as ${s.role} on ${fmt(s.start)}.\n\nYour accounts will be ready before you arrive. On your first morning, IT will walk you through logging in, Wi-Fi, your email and the systems you will use day to day.\n\nWhat to bring on day one:\n  - A photo ID for your access setup.\n  - Any device details if you are bringing your own peripherals.\n\nYour sign-in name will be ${p.email}. You will set your password and MFA with IT when you arrive.\n\nIf anything comes up before your start date, just reply to this email.\n\nSee you soon,\n${s.manager||"The team"}`;}
+function dayGuide(p){const g=[
   ["Signing in",`Your username is ${p.username} and your email is ${p.email}. IT will help you set your password and MFA on day one.`],
   ["Wi-Fi and network","Connect to the staff Wi-Fi (IT will give you the name and password). If the internet does not work, tell IT what you see rather than guessing."],
   ["Email and Microsoft 365",`Your mailbox is ${p.email}, on ${p.m365}. Save work to OneDrive or the team folder, not the desktop.`],
   ["Printing and saving files","IT will add the right printer for your area. Shared files go in the team folder; personal drafts in OneDrive."],
   ["Staying safe","Never share your password; IT will never ask for it. If an email looks off, do not click — forward it to IT. Lock your screen when you step away."],
   ["Who to contact","For anything not working, log it with IT. Say what you were doing, what happened, and whether it affects others."],
-];}
+];
+  if(p.aiTip) g.push(["A tip for your team", p.aiTip.trim()]);
+  return g;}
 
 /* ---- state + nav ---- */
 const state={view:"builder",plan:null,tab:"checklist"};
@@ -266,13 +269,22 @@ function outputHTML(){
       ${p.matched?"":`<span class="flag">no department profile matched — default set, review</span>`}
     </div>
     ${timelineHTML(p)}
-    <div class="barrow"><div class="tabs">${tabs}</div><span style="margin-left:auto"></span><button class="btn btn-ghost" id="printbtn">Print / Save PDF</button></div>
+    <div class="barrow"><div class="tabs">${tabs}</div><span style="margin-left:auto"></span><button class="btn btn-ghost" id="aibtn">${state.plan&&state.plan.aiWelcome?'AI personalised ✓':'Personalise with AI'}</button><button class="btn btn-ghost" id="printbtn">Print / Save PDF</button></div>
     ${body}`;
 }
 function wireOutput(){
   $("#out").querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{state.tab=b.dataset.tab;$("#out").innerHTML=outputHTML();wireOutput();}));
   const pb=$("#printbtn"); if(pb)pb.addEventListener("click",()=>{if(state.tab!=="checklist"){state.tab="checklist";$("#out").innerHTML=outputHTML();wireOutput();}setTimeout(()=>window.print(),60);});
   const ce=$("#cpEmail"); if(ce)ce.addEventListener("click",async()=>{await navigator.clipboard.writeText(welcomeEmail(state.plan));ce.textContent="Copied";setTimeout(()=>ce.textContent="Copy email",1400);});
+  const ai=$("#aibtn"); if(ai)ai.addEventListener("click",async()=>{
+    const p=state.plan; if(!p)return; ai.textContent="Personalising…";
+    try{
+      const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:p.starter.name,role:p.starter.role,department:p.starter.department})});
+      if(!r.ok) throw 0; const d=await r.json();
+      p.aiWelcome=d.welcome||""; p.aiTip=d.tip||""; state.tab="email";
+      $("#out").innerHTML=outputHTML(); wireOutput();
+    }catch(e){ ai.textContent="AI not enabled"; setTimeout(()=>ai.textContent="Personalise with AI",1600); }
+  });
 }
 
 /* ---- equipment register ---- */

@@ -77,6 +77,14 @@ With the server running, `POST /api/plan` builds the pack with the real
 `onboard_kit` module. A `Dockerfile` and `render.yaml` are included for a free
 deploy.
 
+## Optional AI personalization
+
+The deterministic pack is the default. A **Personalise with AI** button calls a
+tiny serverless function (`api/ai.js`) to add a short role/department-specific
+welcome paragraph to the email and a Day-1 tip to the guide. The key lives only
+in the `NVIDIA_API_KEY` environment variable (Vercel project settings); without
+it the pack generates exactly as before.
+
 ## Running the tests
 
 ```bash
