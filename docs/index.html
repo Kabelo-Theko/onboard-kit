@@ -4,304 +4,319 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>onboard-kit — IT onboarding pack builder</title>
-<meta name="description" content="Turn a new starter's details into a full IT onboarding pack." />
+<meta name="description" content="Turn a new starter's details into a full IT onboarding pack: checklist with owners and due dates, welcome email, Day-1 guide and equipment register." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Libre+Franklin:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  /*
-    onboard-kit — HR DOCUMENT theme.
-    Onboarding is a people process, not an ops console, so this reads like a
-    well-set internal document: a cool white page, a warm serif (Fraunces) for
-    headings to carry a human tone, a clean humanist sans for body, deep navy
-    ink, and a single warm accent reserved for the day-one moment. No dark
-    chrome, no decoration; clarity is the brand.
-  */
   :root{
     --bg:#f6f8fb; --surface:#ffffff; --line:#e5e8ee; --ink:#14213d; --soft:#49526a; --mute:#828b9c;
     --accent:#2348b8; --accent-press:#1b3a98; --day1:#e26d4f;
     --radius:12px; --serif:"Fraunces",Georgia,serif; --sans:"Libre Franklin",system-ui,sans-serif;
     --shadow:0 1px 2px rgba(20,33,61,.04), 0 12px 30px -20px rgba(20,33,61,.28);
-    --motion:460ms cubic-bezier(.16,1,.3,1);
+    --motion:420ms cubic-bezier(.16,1,.3,1);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
   .wrap{max-width:1120px;margin:0 auto;padding:0 28px}
-  header.mast{padding:52px 0 26px}
-  .eyebrow{font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px}
-  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5vw,50px);line-height:1.04;letter-spacing:-.01em;margin:14px 0 0;max-width:16ch;color:var(--ink)}
-  .lede{font-size:16.5px;color:var(--soft);margin:14px 0 0;max-width:60ch}
-  .desk{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:28px;padding-bottom:72px;align-items:start}
+  a{color:inherit}
+
+  .topbar{position:sticky;top:0;z-index:30;background:rgba(246,248,251,.88);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .topbar .row{max-width:1120px;margin:0 auto;padding:13px 28px;display:flex;align-items:center;gap:16px}
+  .brand{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:-.01em;color:var(--ink)}
+  .nav{display:flex;gap:4px;margin-left:auto;align-items:center}
+  .nav a{font-size:13px;font-weight:500;color:var(--soft);text-decoration:none;padding:7px 13px;border-radius:999px;border:1px solid transparent;cursor:pointer}
+  .nav a:hover{border-color:var(--line)}
+  .nav a.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .hamb{display:none;margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:7px;padding:8px 10px;cursor:pointer}
+  .hamb span{display:block;width:18px;height:2px;background:var(--ink);margin:3px 0;border-radius:2px}
+  @media (max-width:680px){.nav{display:none;position:absolute;top:54px;right:14px;left:14px;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}.nav.open{display:flex}.hamb{display:block}}
+
+  header.mast{padding:46px 0 24px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.8vw,46px);line-height:1.04;letter-spacing:-.01em;margin:13px 0 0;max-width:17ch;color:var(--ink)}
+  .lede{font-size:16px;color:var(--soft);margin:13px 0 0;max-width:62ch}
+
+  .view{padding-bottom:72px}
+  .desk{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:28px;align-items:start}
   @media (max-width:900px){.desk{grid-template-columns:1fr}}
-  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;position:sticky;top:24px}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;position:sticky;top:74px}
   @media (max-width:900px){.panel{position:static}}
   label{display:block;font-size:13px;font-weight:600;margin:13px 0 5px;color:var(--soft)}
   label:first-child{margin-top:0}
   input,select{width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);background:#fbfcfe;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
   input:focus,select:focus{outline:2px solid var(--accent);outline-offset:2px;border-color:transparent}
-  button{font-family:var(--sans);font-size:14px;font-weight:600;border-radius:9px;padding:11px 16px;cursor:pointer;border:1px solid transparent;transition:transform 80ms ease,background var(--motion)}
-  button:active{transform:translateY(1px)}
-  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.btn{font-family:var(--sans);font-size:14px;font-weight:600;border-radius:9px;padding:11px 16px;cursor:pointer;border:1px solid transparent;transition:background var(--motion),border-color var(--motion)}
+  button.btn:active{transform:translateY(1px)}
   .btn-primary{background:var(--accent);color:#fff;width:100%;margin-top:18px}
   .btn-primary:hover{background:var(--accent-press)}
   .btn-ghost{background:transparent;color:var(--soft);border:1px solid var(--line)}
   .btn-ghost:hover{border-color:var(--accent);color:var(--ink)}
+
   .out{min-height:340px}
   .idline{display:flex;gap:14px;flex-wrap:wrap;align-items:baseline;margin-bottom:18px;font-size:13.5px;color:var(--soft)}
   .idline b{color:var(--ink);font-weight:600}
   .flag{background:#fdeee9;color:var(--day1);border-radius:5px;padding:2px 8px;font-size:12px}
-  .timeline{display:flex;gap:0;margin:6px 0 26px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
-  .stop{flex:1;padding:15px 16px;border-right:1px solid var(--line)}
+  .timeline{display:flex;gap:0;margin:6px 0 24px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
+  .stop{flex:1;padding:14px 16px;border-right:1px solid var(--line)}
   .stop:last-child{border-right:0}
   .stop .when{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
-  .stop .date{font-size:12.5px;color:var(--soft);margin:3px 0 10px}
+  .stop .date{font-size:12.5px;color:var(--soft);margin:3px 0 9px}
   .stop.day1{background:#fdf2ee}
   .stop.day1 .when{color:var(--day1)}
-  .stop .n{font-family:var(--serif);font-weight:700;font-size:26px;color:var(--ink)}
+  .stop .n{font-family:var(--serif);font-weight:700;font-size:24px;color:var(--ink)}
   .stop.day1 .n{color:var(--day1)}
   .stop .lab{font-size:11.5px;color:var(--mute)}
+
   .tabs{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
   .tab{font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--soft);cursor:pointer}
   .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
   .cat{font-family:var(--serif);font-weight:600;font-size:15px;color:var(--ink);margin:22px 0 9px}
   table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-  th,td{text-align:left;padding:10px 13px;font-size:13.5px;border-bottom:1px solid var(--line);vertical-align:top}
+  th,td{text-align:left;padding:9px 12px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top}
   th{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:#f3f6fa}
   tr:last-child td{border-bottom:0}
-  td .own{font-size:11.5px;color:var(--soft)}
-  td .due{font-size:12.5px;color:var(--soft);white-space:nowrap}
+  td.dm{font-weight:600;color:var(--accent);white-space:nowrap;font-size:12.5px}
+  td.dm.d0{color:var(--day1)}
+  td.own{color:var(--soft);white-space:nowrap;font-size:12.5px}
+  td.due{color:var(--soft);white-space:nowrap;font-size:12.5px}
+  td.done{width:34px;color:var(--mute)}
   .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}
   pre{white-space:pre-wrap;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;color:var(--ink);margin:0}
   .copy{margin-bottom:10px}
   .guide h3{font-family:var(--serif);font-weight:600;font-size:17px;margin:16px 0 4px;color:var(--ink)}
   .guide h3:first-child{margin-top:0}
   .guide p{font-size:14px;color:var(--soft);margin:0 0 6px}
+  .barrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .ref h2{font-family:var(--serif);font-weight:600;font-size:18px;margin:24px 0 10px;color:var(--ink)}
   .empty{border:1px dashed var(--line);border-radius:var(--radius);padding:34px;background:var(--surface)}
-  .empty h3{font-family:var(--serif);font-weight:600;font-size:21px;margin:0 0 8px;color:var(--ink)}
+  .empty h3{font-family:var(--serif);font-weight:600;font-size:20px;margin:0 0 8px;color:var(--ink)}
   .empty p{color:var(--soft);margin:0;max-width:52ch}
   .enter{opacity:0;transform:translateY(8px);animation:rise var(--motion) forwards}
   @keyframes rise{to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.enter{animation:none;opacity:1;transform:none}button{transition:none}}
   footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mute);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap}
   footer a{color:var(--soft);text-decoration:none;border-bottom:1px solid var(--line)}
-  footer a:hover{color:var(--ink)}
+
+  /* print: show only the printable region */
+  .printhead{display:none}
+  @media print{
+    .topbar,.mast,.panel,.tabs,footer,.barrow,.timeline{display:none!important}
+    body{background:#fff}
+    .desk{display:block}
+    .printhead{display:block;margin-bottom:14px}
+    .printhead h2{font-family:var(--serif);margin:0}
+    table{box-shadow:none}
+    .out{min-height:0}
+  }
 </style>
 </head>
 <body>
+<div class="topbar">
+  <div class="row">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><rect x="3" y="4" width="16" height="15" rx="2.2" stroke="#14213d" stroke-width="1.8"/><path d="M3 8 H19" stroke="#14213d" stroke-width="1.8"/><path d="M7 2.5 V5.5 M15 2.5 V5.5" stroke="#14213d" stroke-width="1.8" stroke-linecap="round"/><circle cx="14.5" cy="14" r="3" fill="#e26d4f"/></svg>
+      onboard-kit
+    </div>
+    <button class="hamb" id="hamb" aria-label="Menu"><span></span><span></span><span></span></button>
+    <nav class="nav" id="nav">
+      <a data-view="builder" class="active">Builder</a>
+      <a data-view="register">Equipment register</a>
+      <a data-view="reference">Reference</a>
+    </nav>
+  </div>
+</div>
+
 <div class="wrap">
   <header class="mast">
-    <div class="eyebrow">
-      <span aria-hidden="true">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <rect x="3" y="4" width="16" height="15" rx="2.2" stroke="#14213d" stroke-width="1.8"/>
-          <path d="M3 8 H19" stroke="#14213d" stroke-width="1.8"/>
-          <path d="M7 2.5 V5.5 M15 2.5 V5.5" stroke="#14213d" stroke-width="1.8" stroke-linecap="round"/>
-          <circle cx="14.5" cy="14" r="3" fill="#e26d4f"/>
-        </svg>
-      </span>
-      onboard-kit · people operations
-    </div>
+    <div class="eyebrow">onboard-kit · people operations</div>
     <h1>Everything ready before they walk in.</h1>
-    <p class="lede">Enter a new starter and get the full IT pack: a checklist with owners and due dates counting back from day one, a welcome email, and a plain-language Day-1 guide. Deterministic, so the same input always gives the same plan.</p>
+    <p class="lede">Enter a new starter and get the full IT pack: a checklist with an owner and a D-minus due date on every task, the exact software and hardware for their department, a welcome email, a Day-1 guide, and a pre-filled equipment register. Deterministic, so the same input always gives the same plan.</p>
   </header>
-
-  <div class="desk">
-    <section class="panel" aria-label="New starter details">
-      <label for="name">Full name</label>
-      <input id="name" placeholder="Thabo Nkosi" value="Thabo Nkosi" />
-      <label for="dept">Department</label>
-      <select id="dept">
-        <option>Retail / Store</option>
-        <option>Design / Studio</option>
-        <option>Warehouse / Distribution</option>
-        <option>Marketing / Ecommerce</option>
-        <option>Head Office / Admin</option>
-      </select>
-      <label for="role">Role</label>
-      <input id="role" placeholder="Sales Assistant" value="Sales Assistant" />
-      <label for="start">Start date</label>
-      <input id="start" type="date" value="2026-07-15" />
-      <label for="manager">Manager (optional)</label>
-      <input id="manager" placeholder="Lerato M" value="Lerato M" />
-      <label for="domain">Email domain</label>
-      <input id="domain" placeholder="company.co.za" value="brand.co.za" />
-      <button class="btn-primary" id="build">Build onboarding pack</button>
-    </section>
-
-    <section class="out" id="out" aria-live="polite">
-      <div class="empty enter">
-        <h3>The pack appears here.</h3>
-        <p>Fill in the details and build. You will get a checklist, a welcome email and a Day-1 guide, with a countdown showing what has to be done before the start date.</p>
-      </div>
-    </section>
-  </div>
-
+  <main id="main"></main>
   <footer>
-    <span class="src-note">Deterministic · runs in your browser</span>
+    <span>Deterministic · runs in your browser</span>
     <span>Built by Kabelo Theko</span>
     <a href="https://github.com/Kabelo-Theko/onboard-kit" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
   </footer>
 </div>
 
 <script>
-/* Mirrors onboard_kit (catalog.py, planner.py, generate.py). Works offline; a
-   backend can also serve POST /api/plan using the real Python module. */
+/* ---- department manifests ---- */
 const DEPARTMENTS = {
-  "Retail / Store":{software:["Point-of-sale app","Time and attendance"],access_groups:["Store-Staff","POS-Users"],hardware:["Store PC login","POS terminal access"],m365:"Microsoft 365 Business Basic"},
-  "Design / Studio":{software:["Adobe Creative Cloud","Asset library client"],access_groups:["Design-Team","Brand-Assets"],hardware:["High-spec laptop","Colour-calibrated monitor"],m365:"Microsoft 365 Business Standard"},
-  "Warehouse / Distribution":{software:["Warehouse / inventory system"],access_groups:["Warehouse-Staff","Inventory"],hardware:["Shared warehouse terminal","Handheld barcode scanner"],m365:"Microsoft 365 Business Basic"},
-  "Marketing / Ecommerce":{software:["Adobe Creative Cloud","Ecommerce admin","Social scheduler"],access_groups:["Marketing","Ecommerce-Admin"],hardware:["Laptop","Docking station"],m365:"Microsoft 365 Business Standard"},
-  "Head Office / Admin":{software:["Finance/HR portal (as required)"],access_groups:["Head-Office-Staff"],hardware:["Laptop","Docking station","External monitor"],m365:"Microsoft 365 Business Standard"},
+  "Retail / Store":{m365:"Microsoft 365 Business Basic",groups:["Store-Staff","POS-Users"],
+    software:["POS client (store-specific config)","Microsoft 365 Business Basic (Outlook + Teams)","Barcode scanner driver + pairing"],
+    hardware:["Store PC login","POS terminal access","Barcode scanner"]},
+  "Design / Studio":{m365:"Microsoft 365 Business Standard",groups:["Design-Team","Brand-Assets"],
+    software:["Adobe Creative Cloud (Illustrator, Photoshop, InDesign)","Figma","Microsoft 365 Business Standard","Slack / Teams"],
+    hardware:["High-spec laptop","Colour-calibrated monitor","Drawing tablet"]},
+  "Warehouse / Distribution":{m365:"Microsoft 365 F1",groups:["Warehouse-Staff","Inventory"],
+    software:["WMS client (Warehouse Management System)","Handheld device MDM enrolment","Microsoft 365 Frontline F1"],
+    hardware:["Shared warehouse terminal","Handheld barcode scanner","Label printer access"]},
+  "Marketing / Ecommerce":{m365:"Microsoft 365 Business Standard",groups:["Marketing","Ecommerce-Admin"],
+    software:["Adobe Creative Cloud","Ecommerce admin console","Social scheduler","Microsoft 365 Business Standard"],
+    hardware:["Laptop","Docking station","External monitor"]},
+  "Head Office / Admin":{m365:"Microsoft 365 Business Standard",groups:["Head-Office-Staff"],
+    software:["Microsoft 365 Business Standard","Finance / HR portal (as required)"],
+    hardware:["Laptop","Docking station","External monitor"]},
 };
-const DEFAULT_PROFILE={software:[],access_groups:["All-Staff"],hardware:["Laptop"],m365:"Microsoft 365 Business Basic"};
-const CATS=["Account","Hardware","Software","Access","Comms"];
-
-function profileFor(dept){
-  if(DEPARTMENTS[dept]) return [DEPARTMENTS[dept],true];
-  const head=(dept.trim().toLowerCase().split(/\s+/)[0]||"");
-  for(const k in DEPARTMENTS){ if(head && k.toLowerCase().startsWith(head)) return [DEPARTMENTS[k],true]; }
-  return [DEFAULT_PROFILE,false];
-}
-function isSenior(role){ const r=role.toLowerCase(); return ["manager","lead","head","supervisor","director"].some(w=>r.includes(w)); }
-function usernameFor(name){
-  const cleaned=name.normalize("NFKD").replace(/[̀-ͯ]/g,"");
-  const parts=cleaned.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if(!parts.length) return "new.starter";
-  if(parts.length===1) return parts[0];
-  return parts[0]+"."+parts[parts.length-1];
-}
+const DEFAULT={m365:"Microsoft 365 Business Basic",groups:["All-Staff"],software:["Microsoft 365 Business Basic"],hardware:["Laptop"]};
+const CATS=["Account","HR","Hardware","Software","Access","Comms"];
 const DAYMS=86400000;
-function fmt(d){ return d.toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}); }
 
-function buildPlan(s){ // s: {name,department,role,start(Date),manager,domain}
-  const [prof,matched]=profileFor(s.department);
+function profileFor(d){if(DEPARTMENTS[d])return [DEPARTMENTS[d],true];const head=(d.trim().toLowerCase().split(/\s+/)[0]||"");for(const k in DEPARTMENTS){if(head&&k.toLowerCase().startsWith(head))return [DEPARTMENTS[k],true];}return [DEFAULT,false];}
+function isSenior(r){r=r.toLowerCase();return ["manager","lead","head","supervisor","director"].some(w=>r.includes(w));}
+function usernameFor(n){const c=n.normalize("NFKD").replace(/[̀-ͯ]/g,"");const p=c.trim().toLowerCase().split(/\s+/).filter(Boolean);if(!p.length)return "new.starter";return p.length===1?p[0]:p[0]+"."+p[p.length-1];}
+function fmt(d){return d.toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});}
+function dmLabel(o){return o===0?"Day 1":"D"+o;}
+
+function buildPlan(s){ // s:{name,department,role,start(Date),manager,domain}
+  const [p,matched]=profileFor(s.department);
   const username=usernameFor(s.name);
   const email=`${username}@${s.domain||"example.co.za"}`;
   const due=o=>new Date(s.start.getTime()+o*DAYMS);
   const t=[];
-  t.push({category:"Account",description:`Create Active Directory account '${username}'`,owner:"IT / AD",due:due(-3)});
-  t.push({category:"Account",description:`Create mailbox ${email} and assign ${prof.m365}`,owner:"IT / M365",due:due(-3)});
-  const groups=prof.access_groups.slice(); if(isSenior(s.role)) groups.push("Managers");
-  t.push({category:"Account",description:"Add to security groups: "+groups.join(", "),owner:"IT / AD",due:due(-2)});
-  t.push({category:"Account",description:"Enrol multi-factor authentication (MFA)",owner:"IT",due:due(-1)});
-  prof.hardware.forEach(it=>t.push({category:"Hardware",description:`Allocate and image: ${it}`,owner:"IT / Asset",due:due(-2)}));
-  if(prof.hardware.length) t.push({category:"Hardware",description:"Asset-tag all kit and record in the inventory",owner:"IT / Asset",due:due(-1)});
-  t.push({category:"Software",description:"Install standard build: Windows, Microsoft 365, antivirus",owner:"IT",due:due(-1)});
-  prof.software.forEach(sw=>t.push({category:"Software",description:`Install / assign licence: ${sw}`,owner:"IT",due:due(-1)}));
-  if(isSenior(s.role)) t.push({category:"Access",description:"Grant approver / reporting access for the team",owner:"IT / System owner",due:due(-1)});
-  t.push({category:"Access",description:"Confirm shared drive and team folder permissions",owner:"IT",due:due(-1)});
-  const mgr=s.manager||"the line manager";
-  t.push({category:"Comms",description:`Send welcome email to ${email}`,owner:`${mgr} / IT`,due:due(0)});
-  t.push({category:"Comms",description:"Run Day-1 IT orientation (login, Wi-Fi, printing, security basics)",owner:"IT",due:due(0)});
-  return {starter:s,username,email,license:prof.m365,matched,tasks:t};
+  const add=(category,description,owner,offset)=>t.push({category,description,owner,offset,due:due(offset)});
+  add("Account",`Create Active Directory account '${username}'`,"IT",-3);
+  add("Account",`Create mailbox ${email} and assign ${p.m365}`,"IT",-3);
+  const groups=p.groups.slice(); if(isSenior(s.role))groups.push("Managers");
+  add("Account","Add to security groups: "+groups.join(", "),"IT",-2);
+  add("Account","Enrol multi-factor authentication (MFA)","IT",-1);
+  add("HR","Confirm contract signed and payroll / tax details captured","HR",-3);
+  p.hardware.forEach(it=>add("Hardware",`Allocate and image: ${it}`,"IT / Asset",-2));
+  add("Hardware","Asset-tag all kit and record in the inventory","IT / Asset",-1);
+  p.software.forEach(sw=>add("Software",`Install / assign licence: ${sw}`,"IT",-1));
+  add("Access","Issue building access card and allocate desk","Facilities",-1);
+  add("Access","Confirm shared drive and team folder permissions","IT",-1);
+  if(isSenior(s.role))add("Access","Grant approver / reporting access for the team","IT / System owner",-1);
+  const mgr=s.manager||"Line manager";
+  add("Comms",`Send welcome email to ${email}`,mgr,0);
+  add("Comms","Run Day-1 IT orientation (login, Wi-Fi, printing, security)","IT",0);
+  return {starter:s,username,email,m365:p.m365,hardware:p.hardware,matched,tasks:t};
 }
+function welcomeEmail(p){const s=p.starter,first=(s.name.trim().split(/\s+/)[0]||"there");
+  return `Subject: Welcome to the team, ${first} — your first day\n\nHi ${first},\n\nWe are looking forward to having you join as ${s.role} on ${fmt(s.start)}.\n\nYour accounts will be ready before you arrive. On your first morning, IT will walk you through logging in, Wi-Fi, your email and the systems you will use day to day.\n\nWhat to bring on day one:\n  - A photo ID for your access setup.\n  - Any device details if you are bringing your own peripherals.\n\nYour sign-in name will be ${p.email}. You will set your password and MFA with IT when you arrive.\n\nIf anything comes up before your start date, just reply to this email.\n\nSee you soon,\n${s.manager||"The team"}`;}
+function dayGuide(p){return [
+  ["Signing in",`Your username is ${p.username} and your email is ${p.email}. IT will help you set your password and MFA on day one.`],
+  ["Wi-Fi and network","Connect to the staff Wi-Fi (IT will give you the name and password). If the internet does not work, tell IT what you see rather than guessing."],
+  ["Email and Microsoft 365",`Your mailbox is ${p.email}, on ${p.m365}. Save work to OneDrive or the team folder, not the desktop.`],
+  ["Printing and saving files","IT will add the right printer for your area. Shared files go in the team folder; personal drafts in OneDrive."],
+  ["Staying safe","Never share your password; IT will never ask for it. If an email looks off, do not click — forward it to IT. Lock your screen when you step away."],
+  ["Who to contact","For anything not working, log it with IT. Say what you were doing, what happened, and whether it affects others."],
+];}
 
-function welcomeEmail(p){
-  const s=p.starter, first=(s.name.trim().split(/\s+/)[0]||"there");
-  return `Subject: Welcome to the team, ${first} — your first day
-
-Hi ${first},
-
-We are looking forward to having you join as ${s.role} on ${fmt(s.start)}.
-
-Your accounts will be ready before you arrive. On your first morning, IT will
-walk you through logging in, connecting to Wi-Fi, your email and the systems
-you will use day to day.
-
-What to bring on day one:
-  - A photo ID for your access setup.
-  - Any device details if you are bringing your own peripherals.
-
-Your sign-in name will be ${p.email}. You will set your password and
-multi-factor authentication with IT when you arrive, so there is nothing to
-prepare in advance.
-
-If anything comes up before your start date, just reply to this email.
-
-See you soon,
-${s.manager||"The team"}`;
-}
-
-function dayGuide(p){
-  return [
-    ["Signing in",`Your username is ${p.username} and your email is ${p.email}. IT will help you set your password and multi-factor authentication (MFA) now. MFA means you confirm a prompt on your phone when you log in, so your account stays yours even if someone learns the password.`],
-    ["Wi-Fi and network","Connect to the staff Wi-Fi (IT will give you the name and password). If the internet does not work, tell IT what you see rather than guessing; it helps us fix it faster."],
-    ["Email and Microsoft 365",`Your mailbox is ${p.email}, on ${p.license}. Teams, Outlook, SharePoint and OneDrive are where messages, mail and files live. Save work to OneDrive or the team folder, not the desktop.`],
-    ["Printing and saving files","IT will add the right printer for your area. Shared files go in the team folder so others can find them; personal drafts go in OneDrive."],
-    ["Staying safe","Never share your password; IT will never ask for it. If an email looks off, do not click, forward it to IT. Lock your screen when you step away (Windows key + L)."],
-    ["Who to contact","For anything not working, log it with IT. Tell us what you were doing, what happened, and whether it affects other people too."],
-  ];
-}
-
-const out=document.getElementById("out");
+/* ---- state + nav ---- */
+const state={view:"builder",plan:null,tab:"checklist"};
+const $=s=>document.querySelector(s);
+const main=$("#main");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
-let current=null, tab="checklist";
+function setView(v){state.view=v;document.querySelectorAll(".nav a").forEach(a=>a.classList.toggle("active",a.dataset.view===v));$("#nav").classList.remove("open");render();}
+$("#hamb").addEventListener("click",()=>$("#nav").classList.toggle("open"));
+document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>setView(a.dataset.view)));
 
-function timeline(p){
-  const stops=[-3,-2,-1,0];
-  const labels={"-3":"3 days before","-2":"2 days before","-1":"day before","0":"day one"};
-  return `<div class="timeline">`+stops.map(o=>{
-    const n=p.tasks.filter(t=>Math.round((t.due-p.starter.start)/DAYMS)===o).length;
-    const d=new Date(p.starter.start.getTime()+o*DAYMS);
-    return `<div class="stop ${o===0?'day1':''}"><div class="when">${o===0?'Start':'T'+o}</div><div class="date">${fmt(d)}</div><div class="n">${n}</div><div class="lab">${labels[o]} ${n===1?'task':'tasks'}</div></div>`;
-  }).join("")+`</div>`;
+/* ---- builder ---- */
+function builderView(){
+  main.innerHTML=`<div class="view enter"><div class="desk">
+    <section class="panel" aria-label="New starter details">
+      <label for="name">Full name</label><input id="name" value="Thabo Nkosi" />
+      <label for="dept">Department</label>
+      <select id="dept">${Object.keys(DEPARTMENTS).map(d=>`<option>${d}</option>`).join("")}</select>
+      <label for="role">Role</label><input id="role" value="Sales Assistant" />
+      <label for="start">Start date</label><input type="date" id="start" value="2026-07-15" />
+      <label for="manager">Manager (optional)</label><input id="manager" value="Lerato M" />
+      <label for="domain">Email domain</label><input id="domain" value="brand.co.za" />
+      <button class="btn btn-primary" id="build">Build onboarding pack</button>
+    </section>
+    <section class="out" id="out">${state.plan?outputHTML():emptyBuilder()}</section>
+  </div></div>`;
+  $("#build").addEventListener("click",doBuild);
+  if(state.plan) wireOutput();
 }
-
-function checklistView(p){
+function emptyBuilder(){return `<div class="empty enter"><h3>The pack appears here.</h3><p>Fill in the details and build. You will get a checklist with owners and due dates, a welcome email, a Day-1 guide, and a pre-filled equipment register.</p></div>`;}
+function doBuild(){
+  const startStr=$("#start").value; if(!startStr){alert("Pick a start date.");return;}
+  const s={name:$("#name").value,department:$("#dept").value,role:$("#role").value,start:new Date(startStr+"T00:00:00"),manager:$("#manager").value,domain:$("#domain").value};
+  state.plan=buildPlan(s); state.tab="checklist";
+  $("#out").innerHTML=outputHTML(); wireOutput();
+}
+function timelineHTML(p){
+  const stops=[-3,-2,-1,0],labels={"-3":"3 days before","-2":"2 days before","-1":"day before","0":"day one"};
+  return `<div class="timeline">`+stops.map(o=>{const n=p.tasks.filter(t=>t.offset===o).length;const d=new Date(p.starter.start.getTime()+o*DAYMS);
+    return `<div class="stop ${o===0?'day1':''}"><div class="when">${o===0?'Start':'D'+o}</div><div class="date">${fmt(d)}</div><div class="n">${n}</div><div class="lab">${labels[o]}</div></div>`;}).join("")+`</div>`;
+}
+function checklistTable(p){
   let h="";
-  for(const cat of CATS){
-    const items=p.tasks.filter(t=>t.category===cat);
-    if(!items.length) continue;
-    h+=`<div class="cat">${cat}</div><table><thead><tr><th>Task</th><th>Owner</th><th>Due</th></tr></thead><tbody>`;
-    h+=items.map(t=>`<tr><td>${esc(t.description)}</td><td><span class="own">${esc(t.owner)}</span></td><td><span class="due">${fmt(t.due)}</span></td></tr>`).join("");
-    h+=`</tbody></table>`;
-  }
+  for(const cat of CATS){const items=p.tasks.filter(t=>t.category===cat);if(!items.length)continue;
+    h+=`<div class="cat">${cat}</div><table><thead><tr><th>Done</th><th>When</th><th>Owner</th><th>Task</th><th>Due</th></tr></thead><tbody>`;
+    h+=items.map(t=>`<tr><td class="done">[ ]</td><td class="dm ${t.offset===0?'d0':''}">${dmLabel(t.offset)}</td><td class="own">${esc(t.owner)}</td><td>${esc(t.description)}</td><td class="due">${fmt(t.due)}</td></tr>`).join("");
+    h+=`</tbody></table>`;}
   return h;
 }
-
-function render(){
-  const p=current;
-  const tabs=`<div class="tabs">
-    ${["checklist","email","guide"].map(t=>`<button class="tab ${tab===t?'active':''}" data-tab="${t}">${t==="checklist"?"Checklist":t==="email"?"Welcome email":"Day-1 guide"}</button>`).join("")}
-  </div>`;
+function outputHTML(){
+  const p=state.plan;
+  const tabs=["checklist","email","guide"].map(t=>`<button class="tab ${state.tab===t?'active':''}" data-tab="${t}">${t==='checklist'?'Checklist':t==='email'?'Welcome email':'Day-1 guide'}</button>`).join("");
   let body="";
-  if(tab==="checklist") body=checklistView(p);
-  else if(tab==="email") body=`<button class="btn-ghost copy" id="copyEmail">Copy email</button><div class="box"><pre id="emailtext">${esc(welcomeEmail(p))}</pre></div>`;
+  if(state.tab==="checklist") body=checklistTable(p);
+  else if(state.tab==="email") body=`<button class="btn btn-ghost copy" id="cpEmail">Copy email</button><div class="box"><pre id="emailtext">${esc(welcomeEmail(p))}</pre></div>`;
   else body=`<div class="box guide">`+dayGuide(p).map((x,i)=>`<h3>${i+1}. ${esc(x[0])}</h3><p>${esc(x[1])}</p>`).join("")+`</div>`;
-
-  out.innerHTML=`<div class="enter">
+  return `<div class="printhead"><h2>IT onboarding checklist — ${esc(p.starter.name)}</h2><div style="color:#49526a;font-size:13px">${esc(p.starter.role)} · ${esc(p.starter.department)} · start ${fmt(p.starter.start)} · ${esc(p.email)}</div></div>
     <div class="idline">
-      <span><b>${esc(p.starter.name)}</b></span>
-      <span>${esc(p.starter.role)}</span>
-      <span>${esc(p.starter.department)}</span>
-      <span><b>${esc(p.username)}</b> · ${esc(p.email)}</span>
-      <span>${esc(p.license)}</span>
+      <span><b>${esc(p.starter.name)}</b></span><span>${esc(p.starter.role)}</span><span>${esc(p.starter.department)}</span>
+      <span><b>${esc(p.username)}</b> · ${esc(p.email)}</span><span>${esc(p.m365)}</span>
       ${p.matched?"":`<span class="flag">no department profile matched — default set, review</span>`}
     </div>
-    ${timeline(p)}
-    ${tabs}
-    ${body}
+    ${timelineHTML(p)}
+    <div class="barrow"><div class="tabs">${tabs}</div><span style="margin-left:auto"></span><button class="btn btn-ghost" id="printbtn">Print / Save PDF</button></div>
+    ${body}`;
+}
+function wireOutput(){
+  $("#out").querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{state.tab=b.dataset.tab;$("#out").innerHTML=outputHTML();wireOutput();}));
+  const pb=$("#printbtn"); if(pb)pb.addEventListener("click",()=>{if(state.tab!=="checklist"){state.tab="checklist";$("#out").innerHTML=outputHTML();wireOutput();}setTimeout(()=>window.print(),60);});
+  const ce=$("#cpEmail"); if(ce)ce.addEventListener("click",async()=>{await navigator.clipboard.writeText(welcomeEmail(state.plan));ce.textContent="Copied";setTimeout(()=>ce.textContent="Copy email",1400);});
+}
+
+/* ---- equipment register ---- */
+function registerView(){
+  const p=state.plan;
+  if(!p){main.innerHTML=`<div class="view enter"><div class="empty"><h3>Build a pack first.</h3><p>The equipment register is pre-filled from the starter's department hardware. Build an onboarding pack in the Builder tab and it appears here.</p></div></div>`;return;}
+  const items=[...p.hardware,"Access card","Phone (if issued)"];
+  const rows=items.map(it=>`<tr><td>${esc(it)}</td><td class="own">__________</td><td class="due">${fmt(p.starter.start)}</td><td class="due">—</td></tr>`).join("");
+  main.innerHTML=`<div class="view enter">
+    <div class="printhead"><h2>Equipment register — ${esc(p.starter.name)}</h2></div>
+    <div class="idline"><span><b>${esc(p.starter.name)}</b></span><span>${esc(p.starter.role)}</span><span>${esc(p.starter.department)}</span></div>
+    <div class="barrow"><span class="cat" style="margin:0">Issued equipment</span><span style="margin-left:auto"></span><button class="btn btn-ghost" id="printreg">Print / Save PDF</button></div>
+    <table><thead><tr><th>Item</th><th>Serial / asset tag</th><th>Issued</th><th>Returned</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="lede" style="margin-top:16px">Fill the serial / asset tag as each item is handed over. The same sheet becomes the <b>return checklist</b> at offboarding — tick the Returned column when the kit comes back.</p>
   </div>`;
-
-  out.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;render();}));
-  const ce=document.getElementById("copyEmail");
-  if(ce) ce.addEventListener("click",async()=>{await navigator.clipboard.writeText(welcomeEmail(p));ce.textContent="Copied";setTimeout(()=>ce.textContent="Copy email",1400);});
+  $("#printreg").addEventListener("click",()=>window.print());
 }
 
-function build(){
-  const name=document.getElementById("name").value;
-  const department=document.getElementById("dept").value;
-  const role=document.getElementById("role").value;
-  const startStr=document.getElementById("start").value;
-  const manager=document.getElementById("manager").value;
-  const domain=document.getElementById("domain").value;
-  if(!startStr){ alert("Please pick a start date."); return; }
-  const start=new Date(startStr+"T00:00:00");
-  current=buildPlan({name,department,role,start,manager,domain});
-  tab="checklist";
-  render();
+/* ---- reference ---- */
+function referenceView(){
+  const rows=Object.entries(DEPARTMENTS).map(([d,p])=>`<tr><td><b>${esc(d)}</b></td><td>${p.software.map(esc).join("<br>")}</td><td>${p.hardware.map(esc).join("<br>")}</td><td>${esc(p.m365)}</td></tr>`).join("");
+  main.innerHTML=`<div class="view ref enter">
+    <h2>Department manifests</h2>
+    <table><thead><tr><th>Department</th><th>Software</th><th>Hardware</th><th>Licence</th></tr></thead><tbody>${rows}</tbody></table>
+    <h2>Who owns what</h2>
+    <table><tbody>
+      <tr><td><b>IT</b></td><td>Accounts, mailbox + licence, security groups, MFA, software install, drive permissions, Day-1 orientation.</td></tr>
+      <tr><td><b>IT / Asset</b></td><td>Allocate and image hardware, asset-tag and record in the inventory.</td></tr>
+      <tr><td><b>HR</b></td><td>Contract signed, payroll and tax details captured.</td></tr>
+      <tr><td><b>Facilities</b></td><td>Building access card and desk allocation.</td></tr>
+      <tr><td><b>Manager</b></td><td>Send the welcome email.</td></tr>
+    </tbody></table>
+    <h2>D-minus scheme</h2>
+    <table><tbody>
+      <tr><td class="dm">D-3</td><td>Accounts, mailbox and HR set up early so nothing is rushed.</td></tr>
+      <tr><td class="dm">D-2</td><td>Hardware allocated and imaged; security groups assigned.</td></tr>
+      <tr><td class="dm">D-1</td><td>MFA, software, access card, permissions — the final checks.</td></tr>
+      <tr><td class="dm d0">Day 1</td><td>Welcome email and the IT orientation.</td></tr>
+    </tbody></table>
+  </div>`;
 }
-document.getElementById("build").addEventListener("click",build);
+
+function render(){if(state.view==="builder")builderView();else if(state.view==="register")registerView();else referenceView();}
+render();
 </script>
 </body>
 </html>

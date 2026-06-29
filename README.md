@@ -45,11 +45,27 @@ else falls back to a sensible default set and is clearly flagged for review.
 
 ## The web UI
 
-There is a web version: fill in the starter's details and it builds the pack,
-with a "countdown to day one" timeline showing how many tasks fall on each day
-before the start, plus tabs for the checklist, the welcome email and the Day-1
-guide. It runs as a static page (host `docs/` free on GitHub Pages), or behind
-the Python engine:
+**Live: https://onboard-kit-eta.vercel.app/**
+
+A multi-view web app. Fill in the starter's details and it builds the pack:
+
+- **Department manifest** — the exact software and hardware for that team
+  (a Design starter gets Adobe + a calibrated monitor; Retail gets the POS
+  client + scanner; Warehouse gets the WMS client + handheld), not a generic
+  placeholder.
+- **D-minus checklist with owners** — every task shows when it is due (`D-3`,
+  `D-1`, `Day 1`), who owns it (IT, IT / Asset, HR, Facilities, Manager) and the
+  real calendar date, counting back from the start day.
+- **Countdown timeline** — how many tasks fall on each day before the start.
+- **Welcome email and Day-1 guide** — ready to copy.
+- **Equipment register** — a pre-filled issue sheet (per-department hardware +
+  access card) that doubles as the offboarding return checklist.
+- **Print / Save PDF** — a print stylesheet renders a clean checklist or
+  register straight to paper or PDF.
+- A **Reference** tab shows every department manifest and the owner key.
+
+Navigation collapses to a hamburger menu on small screens. It runs as a static
+page (host `docs/` on Vercel or GitHub Pages), or behind the Python engine:
 
 ```bash
 pip install -r requirements.txt
