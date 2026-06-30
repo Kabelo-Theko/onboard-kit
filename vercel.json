@@ -4,5 +4,6 @@
   "buildCommand": null,
   "installCommand": null,
   "outputDirectory": "docs",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "functions": { "api/ai.js": { "maxDuration": 60 } }
 }
