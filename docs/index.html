@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>onboard-kit — IT onboarding pack builder</title>
+<title>onboard-kit: IT onboarding pack builder</title>
 <meta name="description" content="Turn a new starter's details into a full IT onboarding pack: checklist with owners and due dates, welcome email, Day-1 guide and equipment register." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -107,6 +107,29 @@
   footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mute);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap}
   footer a{color:var(--soft);text-decoration:none;border-bottom:1px solid var(--line)}
 
+  /* access policy block */
+  .access-row{display:flex;align-items:baseline;gap:9px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .access-row:last-child{border-bottom:0}
+  .access-badge{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:5px;padding:2px 7px;white-space:nowrap}
+  .access-granted{background:#e6f4ea;color:#1e6e35}
+  .access-denied{background:#f3f6fa;color:var(--mute)}
+  .access-reason{font-size:12.5px;color:var(--mute);margin-left:auto;text-align:right}
+  .access-elevated{margin-top:10px;font-size:12.5px;color:var(--soft);font-style:italic}
+
+  /* serial / asset tag inputs in register */
+  .serial-input{width:100%;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;color:var(--ink);background:#fbfcfe;border:1px solid var(--line);border-radius:7px;padding:6px 9px}
+  .serial-input:focus{outline:2px solid var(--accent);outline-offset:2px;border-color:transparent}
+
+  /* reasoning receipt */
+  .ai-receipt{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;color:var(--mute);margin-top:10px;padding:5px 9px;border-left:2px solid var(--line)}
+
+  /* handover receipt: hidden container shown only at print time via body class */
+  #receipt{display:none}
+  .receipt-sig-block{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:32px}
+  .receipt-sig-block .sig-field{border-top:1px solid var(--ink);margin-top:40px;padding-top:4px;font-size:12px;color:var(--soft)}
+  .receipt-sig-block .sig-label{font-weight:600;font-size:13px;margin-bottom:28px}
+  .receipt-policy{font-size:12.5px;color:var(--soft);margin-top:18px;padding:10px 14px;border:1px solid var(--line);border-radius:8px}
+
   /* print: show only the printable region */
   .printhead{display:none}
   @media print{
@@ -117,6 +140,22 @@
     .printhead h2{font-family:var(--serif);margin:0}
     table{box-shadow:none}
     .out{min-height:0}
+  }
+
+  /* print receipt mode: hide everything except #receipt */
+  body.print-receipt .topbar,
+  body.print-receipt .mast,
+  body.print-receipt .panel,
+  body.print-receipt .tabs,
+  body.print-receipt footer,
+  body.print-receipt .barrow,
+  body.print-receipt .timeline,
+  body.print-receipt #main > *:not(#receipt-wrapper){display:none!important}
+  body.print-receipt #receipt{display:block!important}
+  @media print{
+    body.print-receipt .wrap > *:not(#main){display:none!important}
+    body.print-receipt #main > *:not(#receipt-wrapper){display:none!important}
+    body.print-receipt #receipt{display:block!important}
   }
 </style>
 </head>
@@ -155,21 +194,37 @@
 const DEPARTMENTS = {
   "Retail / Store":{m365:"Microsoft 365 Business Basic",groups:["Store-Staff","POS-Users"],
     software:["POS client (store-specific config)","Microsoft 365 Business Basic (Outlook + Teams)","Barcode scanner driver + pairing"],
-    hardware:["Store PC login","POS terminal access","Barcode scanner"]},
+    hardware:["Store PC login","POS terminal access","Barcode scanner"],
+    access:{pos_admin:true,payment_data:false,adobe_cc:false,ecommerce_admin:false,wms:false,finance_portal:false}},
   "Design / Studio":{m365:"Microsoft 365 Business Standard",groups:["Design-Team","Brand-Assets"],
     software:["Adobe Creative Cloud (Illustrator, Photoshop, InDesign)","Figma","Microsoft 365 Business Standard","Slack / Teams"],
-    hardware:["High-spec laptop","Colour-calibrated monitor","Drawing tablet"]},
+    hardware:["High-spec laptop","Colour-calibrated monitor","Drawing tablet"],
+    access:{pos_admin:false,payment_data:false,adobe_cc:true,ecommerce_admin:false,wms:false,finance_portal:false}},
   "Warehouse / Distribution":{m365:"Microsoft 365 F1",groups:["Warehouse-Staff","Inventory"],
     software:["WMS client (Warehouse Management System)","Handheld device MDM enrolment","Microsoft 365 Frontline F1"],
-    hardware:["Shared warehouse terminal","Handheld barcode scanner","Label printer access"]},
+    hardware:["Shared warehouse terminal","Handheld barcode scanner","Label printer access"],
+    access:{pos_admin:false,payment_data:false,adobe_cc:false,ecommerce_admin:false,wms:true,finance_portal:false}},
   "Marketing / Ecommerce":{m365:"Microsoft 365 Business Standard",groups:["Marketing","Ecommerce-Admin"],
     software:["Adobe Creative Cloud","Ecommerce admin console","Social scheduler","Microsoft 365 Business Standard"],
-    hardware:["Laptop","Docking station","External monitor"]},
+    hardware:["Laptop","Docking station","External monitor"],
+    access:{pos_admin:false,payment_data:false,adobe_cc:true,ecommerce_admin:true,wms:false,finance_portal:false}},
   "Head Office / Admin":{m365:"Microsoft 365 Business Standard",groups:["Head-Office-Staff"],
     software:["Microsoft 365 Business Standard","Finance / HR portal (as required)"],
-    hardware:["Laptop","Docking station","External monitor"]},
+    hardware:["Laptop","Docking station","External monitor"],
+    access:{pos_admin:false,payment_data:true,adobe_cc:false,ecommerce_admin:false,wms:false,finance_portal:true}},
 };
-const DEFAULT={m365:"Microsoft 365 Business Basic",groups:["All-Staff"],software:["Microsoft 365 Business Basic"],hardware:["Laptop"]};
+const DEFAULT={m365:"Microsoft 365 Business Basic",groups:["All-Staff"],software:["Microsoft 365 Business Basic"],hardware:["Laptop"],
+  access:{pos_admin:false,payment_data:false,adobe_cc:false,ecommerce_admin:false,wms:false,finance_portal:false}};
+
+const ACCESS_LABELS={
+  pos_admin:{label:"POS administration",reason:"runs the till and store point of sale"},
+  payment_data:{label:"Cardholder / payment data",reason:"restricted under card-industry segregation of duties"},
+  adobe_cc:{label:"Adobe Creative Cloud",reason:"design and brand asset creation"},
+  ecommerce_admin:{label:"Ecommerce admin console",reason:"manages the online store"},
+  wms:{label:"Warehouse management system",reason:"stock and dispatch operations"},
+  finance_portal:{label:"Finance / HR portal",reason:"handles finance and people data"},
+};
+
 const CATS=["Account","HR","Hardware","Software","Access","Comms"];
 const DAYMS=86400000;
 
@@ -178,6 +233,7 @@ function isSenior(r){r=r.toLowerCase();return ["manager","lead","head","supervis
 function usernameFor(n){const c=n.normalize("NFKD").replace(/[̀-ͯ]/g,"");const p=c.trim().toLowerCase().split(/\s+/).filter(Boolean);if(!p.length)return "new.starter";return p.length===1?p[0]:p[0]+"."+p[p.length-1];}
 function fmt(d){return d.toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});}
 function dmLabel(o){return o===0?"Day 1":"D"+o;}
+function aiModelLabel(){const s=document.querySelector('#aimodel');return s?s.options[s.selectedIndex].text.replace(/\s*\(.*\)\s*/,'').trim():'AI';}
 
 function buildPlan(s){ // s:{name,department,role,start(Date),manager,domain}
   const [p,matched]=profileFor(s.department);
@@ -211,15 +267,34 @@ function dayGuide(p){const g=[
   ["Wi-Fi and network","Connect to the staff Wi-Fi (IT will give you the name and password). If the internet does not work, tell IT what you see rather than guessing."],
   ["Email and Microsoft 365",`Your mailbox is ${p.email}, on ${p.m365}. Save work to OneDrive or the team folder, not the desktop.`],
   ["Printing and saving files","IT will add the right printer for your area. Shared files go in the team folder; personal drafts in OneDrive."],
-  ["Staying safe","Never share your password; IT will never ask for it. If an email looks off, do not click — forward it to IT. Lock your screen when you step away."],
+  ["Staying safe","Never share your password; IT will never ask for it. If an email looks off, do not click; forward it to IT instead. Lock your screen when you step away."],
   ["Who to contact","For anything not working, log it with IT. Say what you were doing, what happened, and whether it affects others."],
 ];
   if(p.aiTip) g.push(["A tip for your team", p.aiTip.trim()]);
-  if(p.aiPlan&&p.aiPlan.length) g.push(["Your first-day plan", p.aiPlan.join("  •  ")]);
+  if(p.aiPlan&&p.aiPlan.length) g.push(["Your first-day plan", p.aiPlan.join("  -  ")]);
   return g;}
 
+function accessPolicyHTML(dept, role){
+  const [prof]=profileFor(dept);
+  const access=prof.access||{};
+  const keys=Object.keys(ACCESS_LABELS);
+  const granted=keys.filter(k=>access[k]);
+  const denied=keys.filter(k=>!access[k]);
+  let rows="";
+  granted.forEach(k=>{
+    const al=ACCESS_LABELS[k];
+    rows+=`<div class="access-row"><span class="access-badge access-granted">Granted</span><span>${esc(al.label)}</span><span class="access-reason">${esc(al.reason)}</span></div>`;
+  });
+  denied.forEach(k=>{
+    const al=ACCESS_LABELS[k];
+    rows+=`<div class="access-row"><span class="access-badge access-denied">Restricted</span><span>${esc(al.label)}</span><span class="access-reason">${esc(al.reason)}</span></div>`;
+  });
+  const senior=isSenior(role)?`<p class="access-elevated">Senior / manager role: elevated approver rights will be applied to existing systems listed above. No additional systems are provisioned without a separate access request.</p>`:"";
+  return `<div class="box" style="margin-bottom:20px"><div class="cat" style="margin-top:0">Access policy</div><p style="font-size:13px;color:var(--mute);margin:0 0 10px">Role-based access control with segregation of duties. Access is determined by department profile.</p>${rows}${senior}</div>`;
+}
+
 /* ---- state + nav ---- */
-const state={view:"builder",plan:null,tab:"checklist"};
+const state={view:"builder",plan:null,tab:"checklist",assets:{}};
 const $=s=>document.querySelector(s);
 const main=$("#main");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
@@ -269,14 +344,20 @@ function outputHTML(){
   const p=state.plan;
   const tabs=["checklist","email","guide"].map(t=>`<button class="tab ${state.tab===t?'active':''}" data-tab="${t}">${t==='checklist'?'Checklist':t==='email'?'Welcome email':'Day-1 guide'}</button>`).join("");
   let body="";
-  if(state.tab==="checklist") body=checklistTable(p);
-  else if(state.tab==="email") body=`<button class="btn btn-ghost copy" id="cpEmail">Copy email</button><div class="box"><pre id="emailtext">${esc(welcomeEmail(p))}</pre></div>`;
-  else body=`<div class="box guide">`+dayGuide(p).map((x,i)=>`<h3>${i+1}. ${esc(x[0])}</h3><p>${esc(x[1])}</p>`).join("")+`</div>`;
-  return `<div class="printhead"><h2>IT onboarding checklist — ${esc(p.starter.name)}</h2><div style="color:#49526a;font-size:13px">${esc(p.starter.role)} · ${esc(p.starter.department)} · start ${fmt(p.starter.start)} · ${esc(p.email)}</div></div>
+  if(state.tab==="checklist"){
+    body=accessPolicyHTML(p.starter.department,p.starter.role)+checklistTable(p);
+  } else if(state.tab==="email"){
+    const receipt=p.aiReceipt?`<div class="ai-receipt">Reasoning receipt: model ${esc(p.aiReceipt.model)} · task personalise · ${esc(p.aiReceipt.time)}</div>`:"";
+    body=`<button class="btn btn-ghost copy" id="cpEmail">Copy email</button>${receipt}<div class="box"><pre id="emailtext">${esc(welcomeEmail(p))}</pre></div>`;
+  } else {
+    const receipt=p.aiReceipt?`<div class="ai-receipt">Reasoning receipt: model ${esc(p.aiReceipt.model)} · task personalise · ${esc(p.aiReceipt.time)}</div>`:"";
+    body=receipt+`<div class="box guide">`+dayGuide(p).map((x,i)=>`<h3>${i+1}. ${esc(x[0])}</h3><p>${esc(x[1])}</p>`).join("")+`</div>`;
+  }
+  return `<div class="printhead"><h2>IT onboarding checklist: ${esc(p.starter.name)}</h2><div style="color:#49526a;font-size:13px">${esc(p.starter.role)} · ${esc(p.starter.department)} · start ${fmt(p.starter.start)} · ${esc(p.email)}</div></div>
     <div class="idline">
       <span><b>${esc(p.starter.name)}</b></span><span>${esc(p.starter.role)}</span><span>${esc(p.starter.department)}</span>
       <span><b>${esc(p.username)}</b> · ${esc(p.email)}</span><span>${esc(p.m365)}</span>
-      ${p.matched?"":`<span class="flag">no department profile matched — default set, review</span>`}
+      ${p.matched?"":`<span class="flag">no department profile matched, default set (review)</span>`}
     </div>
     ${timelineHTML(p)}
     <div class="barrow"><div class="tabs">${tabs}</div><span style="margin-left:auto"></span><select class="aimodel" id="aimodel" title="AI model"><option value="flash">DeepSeek Flash</option><option value="pro">DeepSeek Pro</option><option value="minimax">MiniMax M3</option></select><button class="btn btn-ghost" id="aibtn">${state.plan&&state.plan.aiWelcome?'AI personalised ✓':'Personalise with AI'}</button><button class="btn btn-ghost" id="manifestbtn">Explain manifest</button><button class="btn btn-ghost" id="printbtn">Print / Save PDF</button></div>
@@ -290,9 +371,12 @@ function wireOutput(){
   const ai=$("#aibtn"); if(ai)ai.addEventListener("click",async()=>{
     const p=state.plan; if(!p)return; ai.textContent="Personalising…";
     try{
+      const model=aiModelLabel();
       const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:p.starter.name,role:p.starter.role,department:p.starter.department,model:($("#aimodel")?.value||"flash")})});
       if(!r.ok) throw 0; const d=await r.json();
-      p.aiWelcome=d.welcome||""; p.aiTip=d.tip||""; p.aiPlan=Array.isArray(d.day1plan)?d.day1plan:[]; state.tab="email";
+      p.aiWelcome=d.welcome||""; p.aiTip=d.tip||""; p.aiPlan=Array.isArray(d.day1plan)?d.day1plan:[];
+      p.aiReceipt={model,time:new Date().toLocaleString('en-GB')};
+      state.tab="email";
       $("#out").innerHTML=outputHTML(); wireOutput();
     }catch(e){ ai.textContent="AI not enabled"; setTimeout(()=>ai.textContent="Personalise with AI",1600); }
   });
@@ -300,9 +384,11 @@ function wireOutput(){
     const mo=$("#manifestout"); const p=state.plan; if(!p)return; const [prof]=profileFor(p.starter.department);
     mb.textContent="Explaining…";
     try{
+      const model=aiModelLabel();
       const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({task:"manifest",department:p.starter.department,software:prof.software,hardware:prof.hardware,groups:prof.groups,model:($("#aimodel")?.value||"flash")})});
       if(!r.ok) throw 0; const d=await r.json();
-      mo.innerHTML=`<div class="box" style="margin-bottom:16px"><div class="cat" style="margin-top:0">Why this provisioning</div><p style="font-size:14px;color:var(--soft);margin:0">${esc(d.rationale||"")}</p></div>`;
+      const receiptLine=`<div class="ai-receipt">Reasoning receipt: model ${esc(model)} · task manifest · ${new Date().toLocaleString('en-GB')}</div>`;
+      mo.innerHTML=`<div class="box" style="margin-bottom:16px"><div class="cat" style="margin-top:0">Why this provisioning</div><p style="font-size:14px;color:var(--soft);margin:0">${esc(d.rationale||"")}</p>${receiptLine}</div>`;
       mb.textContent="Explain manifest";
     }catch(e){ mb.textContent="Explain manifest"; mo.innerHTML=`<div class="box" style="margin-bottom:16px"><p style="font-size:13px;color:var(--mute);margin:0">The manifest explainer needs NVIDIA_API_KEY in Vercel. The deterministic pack is unaffected.</p></div>`; }
   });
@@ -313,15 +399,46 @@ function registerView(){
   const p=state.plan;
   if(!p){main.innerHTML=`<div class="view enter"><div class="empty"><h3>Build a pack first.</h3><p>The equipment register is pre-filled from the starter's department hardware. Build an onboarding pack in the Builder tab and it appears here.</p></div></div>`;return;}
   const items=[...p.hardware,"Access card","Phone (if issued)"];
-  const rows=items.map(it=>`<tr><td>${esc(it)}</td><td class="own">__________</td><td class="due">${fmt(p.starter.start)}</td><td class="due">—</td></tr>`).join("");
+  const rows=items.map(it=>{
+    const val=esc(state.assets[it]||"");
+    return `<tr><td>${esc(it)}</td><td><input class="serial-input" data-item="${esc(it)}" placeholder="serial / asset tag" value="${val}" /></td><td class="due">${fmt(p.starter.start)}</td><td class="due"></td></tr>`;
+  }).join("");
   main.innerHTML=`<div class="view enter">
-    <div class="printhead"><h2>Equipment register — ${esc(p.starter.name)}</h2></div>
+    <div class="printhead"><h2>Equipment register: ${esc(p.starter.name)}</h2></div>
     <div class="idline"><span><b>${esc(p.starter.name)}</b></span><span>${esc(p.starter.role)}</span><span>${esc(p.starter.department)}</span></div>
-    <div class="barrow"><span class="cat" style="margin:0">Issued equipment</span><span style="margin-left:auto"></span><button class="btn btn-ghost" id="printreg">Print / Save PDF</button></div>
+    <div class="barrow"><span class="cat" style="margin:0">Issued equipment</span><span style="margin-left:auto"></span><button class="btn btn-ghost" id="genreceipt">Generate handover receipt</button><button class="btn btn-ghost" id="printreg">Print / Save PDF</button></div>
     <table><thead><tr><th>Item</th><th>Serial / asset tag</th><th>Issued</th><th>Returned</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="lede" style="margin-top:16px">Fill the serial / asset tag as each item is handed over. The same sheet becomes the <b>return checklist</b> at offboarding — tick the Returned column when the kit comes back.</p>
+    <p class="lede" style="margin-top:16px">Fill the serial / asset tag as each item is handed over. The same sheet becomes the <b>return checklist</b> at offboarding: tick the Returned column when the kit comes back.</p>
   </div>`;
+  /* persist serial values into state.assets on input */
+  main.querySelectorAll(".serial-input").forEach(inp=>{
+    inp.addEventListener("input",()=>{state.assets[inp.dataset.item]=inp.value;});
+  });
   $("#printreg").addEventListener("click",()=>window.print());
+  $("#genreceipt").addEventListener("click",()=>generateReceipt(p,items));
+}
+
+function generateReceipt(p,items){
+  const now=new Date().toLocaleString('en-GB');
+  const tableRows=items.map(it=>{
+    const serial=state.assets[it]||"";
+    return `<tr><td>${esc(it)}</td><td>${esc(serial)||'<span style="color:#828b9c">not entered</span>'}</td></tr>`;
+  }).join("");
+  let el=document.getElementById("receipt-wrapper");
+  if(!el){el=document.createElement("div");el.id="receipt-wrapper";main.appendChild(el);}
+  el.innerHTML=`<div id="receipt" style="padding:32px 0">
+    <div class="printhead" style="display:block"><h2 style="font-family:var(--serif);margin:0 0 4px">Equipment handover receipt</h2><div style="font-size:13px;color:var(--soft)">Generated: ${esc(now)}</div></div>
+    <div class="idline" style="margin-top:14px"><span><b>${esc(p.starter.name)}</b></span><span>${esc(p.starter.role)}</span><span>${esc(p.starter.department)}</span></div>
+    <table style="margin-top:10px"><thead><tr><th>Item</th><th>Serial / asset tag</th></tr></thead><tbody>${tableRows}</tbody></table>
+    <div class="receipt-policy">Issued under role-based access policy. Access granted per the ${esc(p.starter.department)} profile.</div>
+    <div class="receipt-sig-block">
+      <div><div class="sig-label">Issued by (IT)</div><div class="sig-field">Name</div><div class="sig-field" style="margin-top:36px">Signature</div><div class="sig-field" style="margin-top:36px">Date</div></div>
+      <div><div class="sig-label">Received by (employee)</div><div class="sig-field">Name</div><div class="sig-field" style="margin-top:36px">Signature</div><div class="sig-field" style="margin-top:36px">Date</div></div>
+    </div>
+  </div>`;
+  document.body.classList.add("print-receipt");
+  window.print();
+  document.body.classList.remove("print-receipt");
 }
 
 /* ---- reference ---- */
@@ -342,7 +459,7 @@ function referenceView(){
     <table><tbody>
       <tr><td class="dm">D-3</td><td>Accounts, mailbox and HR set up early so nothing is rushed.</td></tr>
       <tr><td class="dm">D-2</td><td>Hardware allocated and imaged; security groups assigned.</td></tr>
-      <tr><td class="dm">D-1</td><td>MFA, software, access card, permissions — the final checks.</td></tr>
+      <tr><td class="dm">D-1</td><td>MFA, software, access card, permissions (the final checks).</td></tr>
       <tr><td class="dm d0">Day 1</td><td>Welcome email and the IT orientation.</td></tr>
     </tbody></table>
   </div>`;
