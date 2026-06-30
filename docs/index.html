@@ -215,6 +215,7 @@ function dayGuide(p){const g=[
   ["Who to contact","For anything not working, log it with IT. Say what you were doing, what happened, and whether it affects others."],
 ];
   if(p.aiTip) g.push(["A tip for your team", p.aiTip.trim()]);
+  if(p.aiPlan&&p.aiPlan.length) g.push(["Your first-day plan", p.aiPlan.join("  •  ")]);
   return g;}
 
 /* ---- state + nav ---- */
@@ -278,7 +279,8 @@ function outputHTML(){
       ${p.matched?"":`<span class="flag">no department profile matched — default set, review</span>`}
     </div>
     ${timelineHTML(p)}
-    <div class="barrow"><div class="tabs">${tabs}</div><span style="margin-left:auto"></span><select class="aimodel" id="aimodel" title="AI model"><option value="flash">DeepSeek Flash</option><option value="pro">DeepSeek Pro</option><option value="minimax">MiniMax M3</option></select><button class="btn btn-ghost" id="aibtn">${state.plan&&state.plan.aiWelcome?'AI personalised ✓':'Personalise with AI'}</button><button class="btn btn-ghost" id="printbtn">Print / Save PDF</button></div>
+    <div class="barrow"><div class="tabs">${tabs}</div><span style="margin-left:auto"></span><select class="aimodel" id="aimodel" title="AI model"><option value="flash">DeepSeek Flash</option><option value="pro">DeepSeek Pro</option><option value="minimax">MiniMax M3</option></select><button class="btn btn-ghost" id="aibtn">${state.plan&&state.plan.aiWelcome?'AI personalised ✓':'Personalise with AI'}</button><button class="btn btn-ghost" id="manifestbtn">Explain manifest</button><button class="btn btn-ghost" id="printbtn">Print / Save PDF</button></div>
+    <div id="manifestout"></div>
     ${body}`;
 }
 function wireOutput(){
@@ -290,9 +292,19 @@ function wireOutput(){
     try{
       const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:p.starter.name,role:p.starter.role,department:p.starter.department,model:($("#aimodel")?.value||"flash")})});
       if(!r.ok) throw 0; const d=await r.json();
-      p.aiWelcome=d.welcome||""; p.aiTip=d.tip||""; state.tab="email";
+      p.aiWelcome=d.welcome||""; p.aiTip=d.tip||""; p.aiPlan=Array.isArray(d.day1plan)?d.day1plan:[]; state.tab="email";
       $("#out").innerHTML=outputHTML(); wireOutput();
     }catch(e){ ai.textContent="AI not enabled"; setTimeout(()=>ai.textContent="Personalise with AI",1600); }
+  });
+  const mb=$("#manifestbtn"); if(mb)mb.addEventListener("click",async()=>{
+    const mo=$("#manifestout"); const p=state.plan; if(!p)return; const [prof]=profileFor(p.starter.department);
+    mb.textContent="Explaining…";
+    try{
+      const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({task:"manifest",department:p.starter.department,software:prof.software,hardware:prof.hardware,groups:prof.groups,model:($("#aimodel")?.value||"flash")})});
+      if(!r.ok) throw 0; const d=await r.json();
+      mo.innerHTML=`<div class="box" style="margin-bottom:16px"><div class="cat" style="margin-top:0">Why this provisioning</div><p style="font-size:14px;color:var(--soft);margin:0">${esc(d.rationale||"")}</p></div>`;
+      mb.textContent="Explain manifest";
+    }catch(e){ mb.textContent="Explain manifest"; mo.innerHTML=`<div class="box" style="margin-bottom:16px"><p style="font-size:13px;color:var(--mute);margin:0">The manifest explainer needs NVIDIA_API_KEY in Vercel. The deterministic pack is unaffected.</p></div>`; }
   });
 }
 
